@@ -252,3 +252,22 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+#PT2 Start
+# Virtual Environments
+backend/venv/
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+
+# IDE files
+.vscode/
+.idea/
+
+#PT2 END

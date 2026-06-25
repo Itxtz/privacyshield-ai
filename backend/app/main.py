@@ -1,11 +1,13 @@
 from fastapi import FastAPI
 
+from app.core.config import settings
+
 from app.db.database import engine
 from app.db.base import Base
 
 from app.models.user import User
 
-from app.core.config import settings
+from app.api.v1.api import api_router
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -14,17 +16,13 @@ app = FastAPI(
 
 Base.metadata.create_all(bind=engine)
 
+app.include_router(api_router)
+
+
 @app.get("/")
 def root():
     return {
         "message": "Welcome to PrivacyShield AI"
-    }
-
-
-@app.get("/health")
-def health():
-    return {
-        "status": "healthy"
     }
 
 '''from fastapi import FastAPI

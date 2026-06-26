@@ -26,6 +26,8 @@ from app.schemas.user import (
 
 from app.services.auth_service import create_user
 
+from fastapi.security import OAuth2PasswordRequestForm
+
 router = APIRouter(
     prefix="/auth",
     tags=["Authentication"]
@@ -48,14 +50,14 @@ def register_user(
     response_model=Token
 )
 def login_user(
-        user: UserLogin,
+        form_data: OAuth2PasswordRequestForm = Depends(),
         db: Session = Depends(get_db)
 ):
 
     db_user = authenticate_user(
-        db,
-        user.email,
-        user.password
+    db,
+    form_data.username,
+    form_data.password
     )
 
     if not db_user:

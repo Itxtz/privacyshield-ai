@@ -11,6 +11,8 @@ from app.api.v1.api import api_router
 
 from app.models.file import File
 
+from app.models.analysis import AnalysisResult
+
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,

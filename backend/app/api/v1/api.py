@@ -13,6 +13,13 @@ from app.api.v1.endpoints import (
     document_analysis
 )
 
+from app.api.v1.endpoints import (
+    auth,
+    file_upload,
+    document_analysis,
+    redaction
+)
+
 api_router = APIRouter()
 
 api_router.include_router(
@@ -27,3 +34,6 @@ api_router.include_router(
     document_analysis.router
 )
 
+api_router.include_router(
+    redaction.router
+)

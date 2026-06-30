@@ -5,6 +5,7 @@ __pycache__/
 
 #PT START
 # Virtual Environment
+backend/venv/
 venv/
 .venv/
 
@@ -34,7 +35,9 @@ Thumbs.db
 #PT END
 
 
-
+# Generated Files
+uploads/*
+redacted_documents/*
 
 
 

@@ -22,6 +22,16 @@ from app.services.redaction_service import (
 
 from fastapi.responses import FileResponse
 
+from app.services.audit_service import (
+    log_event
+)
+
+from app.core.security import (
+    get_current_user
+)
+
+from app.models.user import User
+
 router = APIRouter(
     prefix="/redaction",
     tags=["Redaction"]
@@ -38,6 +48,9 @@ os.makedirs(
 @router.get("/redact/{file_id}")
 def redact_document(
         file_id: int,
+        current_user: User = Depends(
+            get_current_user
+        ),
         db: Session = Depends(get_db)
 ):
 
@@ -78,6 +91,19 @@ def redact_document(
         f.write(
             result["redacted_text"]
         )
+        
+    log_event(
+
+        db=db,
+
+        user_id=current_user.id,
+
+        action="REDACT",
+
+        resource=db_file.filename,
+
+        details="Document redacted"
+    )
 
     return {
 

@@ -27,6 +27,10 @@ from app.services.risk_service import (
 from app.core.security import get_current_user
 from app.models.user import User
 
+from app.services.audit_service import (
+    log_event
+)
+
 router = APIRouter(
     prefix="/analysis",
     tags=["Analysis"]
@@ -76,6 +80,22 @@ def analyze_document(
     db.commit()
 
     db.refresh(analysis)
+
+    log_event(
+
+        db=db,
+
+        user_id=db_file.uploaded_by,
+
+        action="ANALYZE",
+
+        resource=db_file.filename,
+
+        details=(
+            f"Risk Level: "
+            f"{risk['level']}"
+        )
+    )
 
     return {
 

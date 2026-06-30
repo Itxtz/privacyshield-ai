@@ -20,6 +20,8 @@ from app.api.v1.endpoints import (
     redaction
 )
 
+from app.api.v1.endpoints import audit
+
 api_router = APIRouter()
 
 api_router.include_router(
@@ -36,4 +38,8 @@ api_router.include_router(
 
 api_router.include_router(
     redaction.router
+)
+
+api_router.include_router(
+    audit.router
 )

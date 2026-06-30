@@ -13,6 +13,10 @@ from app.models.file import File as FileModel
 from app.core.security import get_current_user
 from app.models.user import User
 
+from app.services.audit_service import (
+    log_event
+)
+
 router = APIRouter(
     prefix="/files",
     tags=["Files"]
@@ -53,6 +57,19 @@ async def upload_file(
     db.add(db_file)
     db.commit()
     db.refresh(db_file)
+
+    log_event(
+
+        db=db,
+
+        user_id=current_user.id,
+
+        action="UPLOAD",
+
+        resource=db_file.filename,
+
+        details="File uploaded"
+    )
 
     return {
         "id": db_file.id,

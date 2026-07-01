@@ -274,3 +274,11 @@ __pycache__/
 .idea/
 
 #PT2 END
+
+# Runtime generated files
+backend/uploads/*
+backend/redacted_documents/*
+
+# Keep the directories
+!backend/uploads/.gitkeep
+!backend/redacted_documents/.gitkeep

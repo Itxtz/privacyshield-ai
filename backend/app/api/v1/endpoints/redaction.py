@@ -32,6 +32,10 @@ from app.core.security import (
 
 from app.models.user import User
 
+from app.services.pdf_service import (
+    create_redacted_pdf
+)
+
 router = APIRouter(
     prefix="/redaction",
     tags=["Redaction"]
@@ -82,14 +86,42 @@ def redact_document(
         output_filename
     )
 
-    with open(
+    # Determine original file type
+    extension = os.path.splitext(
+        db_file.filename
+    )[1].lower()
+
+    # TXT files
+    if extension == ".txt":
+
+        with open(
             output_path,
             "w",
             encoding="utf-8"
-    ) as f:
+        ) as f:
 
-        f.write(
-            result["redacted_text"]
+            f.write(
+                result["redacted_text"]
+            )
+
+    # PDF files
+    elif extension == ".pdf":
+
+        create_redacted_pdf(
+
+            output_path=output_path,
+
+            text=result["redacted_text"]
+        )
+
+    # Unsupported formats
+    else:
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail=f"Unsupported file type: {extension}"
         )
         
     log_event(
@@ -107,22 +139,50 @@ def redact_document(
 
     return {
 
-        "original_file": db_file.filename,
+        "message": "Document redacted successfully",
 
-        "redacted_file": output_filename,
+        "file_id": db_file.id,
 
-        "output_path": output_path,
+        "download_endpoint":
+            f"/redaction/download/{db_file.id}",
 
-        "summary": result["summary"],
-
-        "redacted_text":
-            result["redacted_text"]
+        "summary": result["summary"]
     }
 
-@router.get("/download/{filename}")
+@router.get("/download/{file_id}")
 def download_redacted_document(
-        filename: str
+
+        file_id: int,
+
+        current_user: User = Depends(
+            get_current_user
+        ),
+
+        db: Session = Depends(get_db)
 ):
+
+    # Find the file in the database
+    db_file = db.query(File).filter(
+        File.id == file_id
+    ).first()
+
+    if not db_file:
+
+        raise HTTPException(
+            status_code=404,
+            detail="File not found"
+        )
+
+    # Verify ownership
+    if db_file.uploaded_by != current_user.id:
+
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+
+    # Construct the generated redacted filename
+    filename = f"redacted_{db_file.filename}"
 
     file_path = os.path.join(
         OUTPUT_DIR,
@@ -133,7 +193,7 @@ def download_redacted_document(
 
         raise HTTPException(
             status_code=404,
-            detail="File not found"
+            detail="Redacted file not found"
         )
 
     return FileResponse(

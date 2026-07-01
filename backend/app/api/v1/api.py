@@ -22,6 +22,10 @@ from app.api.v1.endpoints import (
 
 from app.api.v1.endpoints import audit
 
+from app.api.v1.endpoints import dashboard
+
+
+
 api_router = APIRouter()
 
 api_router.include_router(
@@ -42,4 +46,8 @@ api_router.include_router(
 
 api_router.include_router(
     audit.router
+)
+
+api_router.include_router(
+    dashboard.router
 )

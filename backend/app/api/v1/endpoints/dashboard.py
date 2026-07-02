@@ -15,7 +15,12 @@ from app.services.dashboard_service import (
     risk_distribution
 )
 
-from app.core.security import get_current_user
+from app.core.security import (
+    require_admin
+)
+from app.core.security import (
+    get_current_user
+)
 from app.models.user import User
 
 router = APIRouter(
@@ -28,7 +33,7 @@ router = APIRouter(
 def dashboard_summary(
 
     current_user: User = Depends(
-        get_current_user
+        require_admin
     ),
 
     db: Session = Depends(get_db)
@@ -39,9 +44,7 @@ def dashboard_summary(
 @router.get("/risk-distribution")
 def get_risk_distribution(
 
-        current_user: User = Depends(
-            get_current_user
-        ),
+        current_user: User = Depends(require_admin),
 
         db: Session = Depends(get_db)
 ):

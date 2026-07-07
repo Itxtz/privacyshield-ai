@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException
 
+
+
 from app.db.database import get_db
 from app.models.user import User
 from app.core.security import require_admin
@@ -16,6 +18,13 @@ from app.schemas.user import SystemStatsResponse
 
 from app.schemas.audit import AuditLogResponse
 
+from typing import Optional
+from fastapi import Query
+
+from sqlalchemy import or_
+
+from app.schemas.user import UserRole
+
 router = APIRouter(
     prefix="/admin",
     tags=["Admin"]
@@ -23,12 +32,101 @@ router = APIRouter(
 
 
 @router.get("/users", response_model=list[AdminUserResponse])
+
+
 def get_all_users(
+
+    search: Optional[str] = Query(
+        None,
+        description="Search by username or email"
+    ),
+
+    role: Optional[UserRole] = Query(
+        None,
+        description="Filter users by role"
+    ),
+
+    sort: Optional[str] = Query(
+        "id",
+        description="Sort by: id, username, email, role"
+    ),
+
+    order: Optional[str] = Query(
+        "asc",
+        description="Sort order: asc or desc"
+    ),
+
+    page: int = Query(
+        1,
+        ge=1,
+        description="Page number"
+    ),
+
+    size: int = Query(
+        10,
+        ge=1,
+        le=100,
+        description="Items per page"
+    ),
+
     current_user: User = Depends(require_admin),
+
     db: Session = Depends(get_db)
 ):
 
-    users = db.query(User).all()
+    query = db.query(User)
+
+    if search:
+
+        query = query.filter(
+
+            or_(
+
+                User.username.ilike(f"%{search}%"),
+
+                User.email.ilike(f"%{search}%")
+
+            )
+
+        )
+    if role:
+
+        query = query.filter(
+            User.role == role.value
+        )
+
+    sort_columns = {
+        "id": User.id,
+        "username": User.username,
+        "email": User.email,
+        "role": User.role,
+    }
+
+    sort_column = sort_columns.get(
+        sort.lower(),
+        User.id
+    )
+
+    if order.lower() == "desc":
+
+        query = query.order_by(
+            sort_column.desc()
+        )
+
+    else:
+
+        query = query.order_by(
+            sort_column.asc()
+        )
+
+    offset = (page - 1) * size
+
+    users = (
+        query
+        .offset(offset)
+        .limit(size)
+        .all()
+    )
 
     return users
 
@@ -121,15 +219,111 @@ def get_system_stats(
 )
 def get_all_audit_logs(
 
+    search: Optional[str] = Query(
+        None,
+        description="Search by resource or details"
+    ),
+
+    action: Optional[str] = Query(
+        None,
+        description="Filter by audit action"
+    ),
+
+    sort: Optional[str] = Query(
+        "timestamp",
+        description="Sort by: timestamp, action, resource"
+    ),
+
+    order: Optional[str] = Query(
+        "desc",
+        description="Sort order: asc or desc"
+    ),
+
+    page: int = Query(
+        1,
+        ge=1,
+        description="Page number"
+    ),
+
+    size: int = Query(
+        10,
+        ge=1,
+        le=100,
+        description="Items per page"
+    ),
+
     current_user: User = Depends(require_admin),
 
     db: Session = Depends(get_db)
 ):
-    audit_logs = (
+    query = (
         db.query(AuditLog, User)
         .join(User, AuditLog.user_id == User.id)
-        .order_by(AuditLog.timestamp.desc())
+    )
+
+    if search:
+
+        query = query.filter(
+
+            or_(
+
+                User.username.ilike(f"%{search}%"),
+
+                AuditLog.resource.ilike(f"%{search}%"),
+
+                AuditLog.details.ilike(f"%{search}%")
+
+            )
+
+        )
+    if action:
+
+        query = query.filter(
+            AuditLog.action == action.upper()
+        )
+
+    sort_columns = {
+
+        "timestamp": AuditLog.timestamp,
+
+        "action": AuditLog.action,
+
+        "resource": AuditLog.resource
+
+    }
+
+    sort_column = sort_columns.get(
+
+        sort.lower(),
+
+        AuditLog.timestamp
+
+    )
+
+    if order.lower() == "desc":
+
+        query = query.order_by(
+            sort_column.desc()
+        )
+
+    else:
+
+        query = query.order_by(
+            sort_column.asc()
+        )
+
+    offset = (page - 1) * size
+
+    audit_logs = (
+
+        query
+
+        .offset(offset)
+
+        .limit(size)
+
         .all()
+
     )
 
     return [

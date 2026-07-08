@@ -13,6 +13,10 @@ from app.models.user import User
 
 from app.core.config import settings
 
+from fastapi import HTTPException, Depends, status
+
+from app.models.user import User
+
 pwd_context = CryptContext(
     schemes=["bcrypt"],
     deprecated="auto"
@@ -87,12 +91,19 @@ def get_current_user(
 
     if user is None:
         raise credentials_exception
+    
+    if not user.is_active:
+
+        raise HTTPException(
+
+            status_code=403,
+
+            detail="Your account has been disabled. Please contact the administrator."
+
+        )
 
     return user
 
-from fastapi import HTTPException, Depends, status
-
-from app.models.user import User
 
 def require_admin(
     current_user: User = Depends(get_current_user)

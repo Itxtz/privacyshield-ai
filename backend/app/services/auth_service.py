@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.models.user import User
 from app.schemas.user import UserCreate
@@ -45,5 +46,15 @@ def authenticate_user(
             user.hashed_password
     ):
         return None
+    
+    if not user.is_active:
+
+        raise HTTPException(
+
+            status_code=403,
+
+            detail="Your account has been disabled. Please contact the administrator."
+
+        )
 
     return user

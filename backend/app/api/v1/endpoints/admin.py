@@ -349,3 +349,79 @@ def get_all_audit_logs(
         for log, user in audit_logs
 
     ]
+
+@router.patch(
+    "/users/{user_id}/disable",
+    response_model=AdminUserResponse
+)
+def disable_user(
+
+    user_id: int,
+
+    current_user: User = Depends(require_admin),
+
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(
+        User.id == user_id
+    ).first()
+
+    if not user:
+
+        raise HTTPException(
+            status_code=404,
+            detail="User not found."
+        )
+
+    if user.id == current_user.id:
+
+        raise HTTPException(
+            status_code=400,
+            detail="You cannot disable your own account."
+        )
+    
+    user.is_active = False
+
+    db.commit()
+
+    db.refresh(user)
+
+    return user
+
+@router.patch(
+    "/users/{user_id}/enable",
+    response_model=AdminUserResponse
+)
+def disable_user(
+
+    user_id: int,
+
+    current_user: User = Depends(require_admin),
+
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(
+        User.id == user_id
+    ).first()
+
+    if not user:
+
+        raise HTTPException(
+            status_code=404,
+            detail="User not found."
+        )
+
+    if user.id == current_user.id:
+
+        raise HTTPException(
+            status_code=400,
+            detail="You cannot disable your own account."
+        )
+    
+    user.is_active = True
+
+    db.commit()
+
+    db.refresh(user)
+
+    return user

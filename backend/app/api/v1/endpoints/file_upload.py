@@ -17,6 +17,9 @@ from app.services.audit_service import (
     log_event
 )
 
+from fastapi import BackgroundTasks
+from app.services.background_tasks import background_log_event
+
 router = APIRouter(
     prefix="/files",
     tags=["Files"]
@@ -32,6 +35,7 @@ os.makedirs(
 
 @router.post("/upload")
 async def upload_file(
+        background_tasks: BackgroundTasks,
         file: UploadFile = File(...),
         current_user: User = Depends(
             get_current_user
@@ -58,9 +62,10 @@ async def upload_file(
     db.commit()
     db.refresh(db_file)
 
-    log_event(
+    #Schedulling the log event as background task to improve user response time.
+    background_tasks.add_task(
 
-        db=db,
+        background_log_event,
 
         user_id=current_user.id,
 
@@ -69,6 +74,7 @@ async def upload_file(
         resource=db_file.filename,
 
         details="File uploaded"
+
     )
 
     return {

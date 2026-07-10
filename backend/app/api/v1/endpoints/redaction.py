@@ -3,7 +3,8 @@ import os
 from fastapi import (
     APIRouter,
     Depends,
-    HTTPException
+    HTTPException,
+    BackgroundTasks
 )
 
 from sqlalchemy.orm import Session
@@ -36,6 +37,8 @@ from app.services.pdf_service import (
     create_redacted_pdf
 )
 
+from app.services.background_tasks import background_log_event
+
 router = APIRouter(
     prefix="/redaction",
     tags=["Redaction"]
@@ -52,6 +55,7 @@ os.makedirs(
 @router.get("/redact/{file_id}")
 def redact_document(
         file_id: int,
+        background_tasks: BackgroundTasks,
         current_user: User = Depends(
             get_current_user
         ),
@@ -124,9 +128,9 @@ def redact_document(
             detail=f"Unsupported file type: {extension}"
         )
         
-    log_event(
+    background_tasks.add_task(
 
-        db=db,
+        background_log_event,
 
         user_id=current_user.id,
 
@@ -135,6 +139,7 @@ def redact_document(
         resource=db_file.filename,
 
         details="Document redacted"
+
     )
 
     return {

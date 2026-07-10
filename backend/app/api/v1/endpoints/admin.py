@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 
 
 
@@ -24,6 +24,8 @@ from fastapi import Query
 from sqlalchemy import or_
 
 from app.schemas.user import UserRole
+
+from app.services.background_tasks import background_log_event
 
 router = APIRouter(
     prefix="/admin",
@@ -140,6 +142,8 @@ def update_user_role(
 
     role_update: RoleUpdate,
 
+    background_tasks: BackgroundTasks,
+
     current_user: User = Depends(require_admin),
 
     db: Session = Depends(get_db)
@@ -171,6 +175,14 @@ def update_user_role(
 
     db.commit()
     db.refresh(user)
+
+    background_tasks.add_task(
+        background_log_event,
+        user_id=current_user.id,
+        action="UPDATE_ROLE",
+        resource=user.username,
+        details=f"Changed role to {user.role}"
+    )
 
     return user
 
@@ -358,6 +370,8 @@ def disable_user(
 
     user_id: int,
 
+    background_tasks: BackgroundTasks,
+
     current_user: User = Depends(require_admin),
 
     db: Session = Depends(get_db)
@@ -386,15 +400,25 @@ def disable_user(
 
     db.refresh(user)
 
+    background_tasks.add_task(
+        background_log_event,
+        user_id=current_user.id,
+        action="DISABLE_USER",
+        resource=user.username,
+        details="User account disabled"
+    )
+
     return user
 
 @router.patch(
     "/users/{user_id}/enable",
     response_model=AdminUserResponse
 )
-def disable_user(
+def enable_user(
 
     user_id: int,
+
+    background_tasks: BackgroundTasks,
 
     current_user: User = Depends(require_admin),
 
@@ -423,5 +447,13 @@ def disable_user(
     db.commit()
 
     db.refresh(user)
+
+    background_tasks.add_task(
+        background_log_event,
+        user_id=current_user.id,
+        action="ENABLE_USER",
+        resource=user.username,
+        details="User account enabled"
+    )
 
     return user

@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
+from fastapi import BackgroundTasks
 
 from sqlalchemy.orm import Session
 
@@ -31,6 +32,8 @@ from app.services.audit_service import (
     log_event
 )
 
+from app.services.background_tasks import background_log_event
+
 router = APIRouter(
     prefix="/analysis",
     tags=["Analysis"]
@@ -40,6 +43,7 @@ router = APIRouter(
 @router.get("/analyze/{file_id}")
 def analyze_document(
         file_id: int,
+        background_tasks: BackgroundTasks,
         db: Session = Depends(get_db)
 ):
 
@@ -81,9 +85,9 @@ def analyze_document(
 
     db.refresh(analysis)
 
-    log_event(
+    background_tasks.add_task(
 
-        db=db,
+    background_log_event,
 
         user_id=db_file.uploaded_by,
 
@@ -95,6 +99,7 @@ def analyze_document(
             f"Risk Level: "
             f"{risk['level']}"
         )
+
     )
 
     return {

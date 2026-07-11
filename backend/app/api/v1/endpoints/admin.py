@@ -27,6 +27,11 @@ from app.schemas.user import UserRole
 
 from app.services.background_tasks import background_log_event
 
+from app.core.exceptions import (
+    NotFoundException,
+    BadRequestException
+)
+
 router = APIRouter(
     prefix="/admin",
     tags=["Admin"]
@@ -155,9 +160,8 @@ def update_user_role(
 
     if not user:
 
-        raise HTTPException(
-            status_code=404,
-            detail="User not found."
+        raise NotFoundException(
+            "User not found."
         )
     
     # Prevent an admin from removing their own admin role
@@ -166,9 +170,8 @@ def update_user_role(
         and role_update.role == "user"
     ):
 
-        raise HTTPException(
-            status_code=400,
-            detail="You cannot remove your own admin role."
+        raise BadRequestException(
+            "You cannot remove your own admin role."
         )
     # Update the user's role
     user.role = role_update.role.value
@@ -382,16 +385,14 @@ def disable_user(
 
     if not user:
 
-        raise HTTPException(
-            status_code=404,
-            detail="User not found."
+        raise NotFoundException(
+            "User not found."
         )
 
     if user.id == current_user.id:
 
-        raise HTTPException(
-            status_code=400,
-            detail="You cannot disable your own account."
+        raise BadRequestException(
+            "You cannot disable your own account."
         )
     
     user.is_active = False
@@ -430,16 +431,14 @@ def enable_user(
 
     if not user:
 
-        raise HTTPException(
-            status_code=404,
-            detail="User not found."
+        raise NotFoundException(
+            "User not found."
         )
 
     if user.id == current_user.id:
 
-        raise HTTPException(
-            status_code=400,
-            detail="You cannot disable your own account."
+        raise BadRequestException(
+            "You cannot enable your own account."
         )
     
     user.is_active = True

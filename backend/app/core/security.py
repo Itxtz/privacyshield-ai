@@ -17,6 +17,8 @@ from fastapi import HTTPException, Depends, status
 
 from app.models.user import User
 
+from app.core.exceptions import InactiveAccountException, AdminPrivilegesRequiredException
+
 pwd_context = CryptContext(
     schemes=["bcrypt"],
     deprecated="auto"
@@ -94,13 +96,7 @@ def get_current_user(
     
     if not user.is_active:
 
-        raise HTTPException(
-
-            status_code=403,
-
-            detail="Your account has been disabled. Please contact the administrator."
-
-        )
+        raise InactiveAccountException()
 
     return user
 
@@ -114,9 +110,6 @@ def require_admin(
 
     if current_user.role != "admin":
 
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin privileges required."
-        )
+        raise AdminPrivilegesRequiredException()
 
     return current_user

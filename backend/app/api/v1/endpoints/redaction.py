@@ -39,6 +39,14 @@ from app.services.pdf_service import (
 
 from app.services.background_tasks import background_log_event
 
+from app.core.exceptions import (
+    NotFoundException,
+    ForbiddenException,
+    BadRequestException
+)
+
+from app.services.auth_service import verify_file_access
+
 router = APIRouter(
     prefix="/redaction",
     tags=["Redaction"]
@@ -68,10 +76,14 @@ def redact_document(
 
     if not db_file:
 
-        raise HTTPException(
-            status_code=404,
-            detail="File not found"
+        raise NotFoundException(
+            "File not found"
         )
+    
+    verify_file_access(
+        db_file,
+        current_user
+    )
 
     text = extract_text(
         db_file.filepath
@@ -121,11 +133,8 @@ def redact_document(
     # Unsupported formats
     else:
 
-        raise HTTPException(
-
-            status_code=400,
-
-            detail=f"Unsupported file type: {extension}"
+        raise BadRequestException(
+            f"Unsupported file type: {extension}"
         )
         
     background_tasks.add_task(
@@ -173,18 +182,15 @@ def download_redacted_document(
 
     if not db_file:
 
-        raise HTTPException(
-            status_code=404,
-            detail="File not found"
+        raise NotFoundException(
+            "File not found"
         )
 
     # Verify ownership
-    if db_file.uploaded_by != current_user.id:
-
-        raise HTTPException(
-            status_code=403,
-            detail="Access denied"
-        )
+    verify_file_access(
+        db_file,
+        current_user
+    )
 
     # Construct the generated redacted filename
     filename = f"redacted_{db_file.filename}"
@@ -196,9 +202,8 @@ def download_redacted_document(
 
     if not os.path.exists(file_path):
 
-        raise HTTPException(
-            status_code=404,
-            detail="Redacted file not found"
+        raise NotFoundException(
+            "Redacted file not found"
         )
 
     return FileResponse(

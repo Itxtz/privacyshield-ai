@@ -10,6 +10,13 @@ from app.core.security import (
     create_access_token
 )
 
+from app.models.file import File
+
+from app.core.exceptions import (
+    ForbiddenException,
+    InactiveAccountException
+)
+
 
 def create_user(db: Session, user: UserCreate):
 
@@ -49,12 +56,21 @@ def authenticate_user(
     
     if not user.is_active:
 
-        raise HTTPException(
-
-            status_code=403,
-
-            detail="Your account has been disabled. Please contact the administrator."
-
-        )
+        raise InactiveAccountException()
 
     return user
+
+def verify_file_access(
+
+    db_file: File,
+
+    current_user: User
+
+):
+    if (
+        db_file.uploaded_by != current_user.id
+        and current_user.role != "admin"
+    ):
+        raise ForbiddenException(
+            "Access denied"
+        )

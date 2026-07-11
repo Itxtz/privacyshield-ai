@@ -34,6 +34,10 @@ from app.services.audit_service import (
 
 from app.services.background_tasks import background_log_event
 
+from app.core.exceptions import NotFoundException
+
+from app.services.auth_service import verify_file_access
+
 router = APIRouter(
     prefix="/analysis",
     tags=["Analysis"]
@@ -44,6 +48,7 @@ router = APIRouter(
 def analyze_document(
         file_id: int,
         background_tasks: BackgroundTasks,
+        current_user: User = Depends(get_current_user),
         db: Session = Depends(get_db)
 ):
 
@@ -53,10 +58,14 @@ def analyze_document(
 
     if not db_file:
 
-        raise HTTPException(
-            status_code=404,
-            detail="File not found"
+        raise NotFoundException(
+            "File not found"
         )
+    
+    verify_file_access(
+        db_file,
+        current_user
+    )
 
     text = extract_text(
         db_file.filepath

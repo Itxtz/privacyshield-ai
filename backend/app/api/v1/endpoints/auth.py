@@ -28,6 +28,8 @@ from app.services.auth_service import create_user
 
 from fastapi.security import OAuth2PasswordRequestForm
 
+from app.core.exceptions import InvalidCredentialsException
+
 router = APIRouter(
     prefix="/auth",
     tags=["Authentication"]
@@ -61,10 +63,7 @@ def login_user(
     )
 
     if not db_user:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid credentials"
-        )
+        raise InvalidCredentialsException()
 
     access_token = create_access_token(
         data={"sub": db_user.email}

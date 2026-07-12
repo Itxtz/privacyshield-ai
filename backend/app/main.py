@@ -25,10 +25,14 @@ from app.core.error_handlers import (
 
 )
 
+from app.core.middleware import RequestLoggingMiddleware
+
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
 )
+
+app.add_middleware(RequestLoggingMiddleware)
 
 app.add_exception_handler(
     HTTPException,

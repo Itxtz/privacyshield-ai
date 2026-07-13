@@ -47,15 +47,16 @@ from app.core.exceptions import (
 
 from app.services.auth_service import verify_file_access
 
+from app.core.config import settings
+
 router = APIRouter(
     prefix="/redaction",
     tags=["Redaction"]
 )
 
-OUTPUT_DIR = "redacted_documents"
 
 os.makedirs(
-    OUTPUT_DIR,
+    settings.OUTPUT_DIR,
     exist_ok=True
 )
 
@@ -98,7 +99,7 @@ def redact_document(
     )
 
     output_path = os.path.join(
-        OUTPUT_DIR,
+        settings.OUTPUT_DIR,
         output_filename
     )
 
@@ -196,7 +197,7 @@ def download_redacted_document(
     filename = f"redacted_{db_file.filename}"
 
     file_path = os.path.join(
-        OUTPUT_DIR,
+        settings.OUTPUT_DIR,
         filename
     )
 

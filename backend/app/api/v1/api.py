@@ -26,6 +26,8 @@ from app.api.v1.endpoints import dashboard
 
 from app.api.v1.endpoints import admin
 
+from app.api.v1.endpoints import health
+
 
 
 api_router = APIRouter()
@@ -56,4 +58,8 @@ api_router.include_router(
 
 api_router.include_router(
     admin.router
+)
+
+api_router.include_router(
+    health.router
 )

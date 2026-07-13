@@ -14,6 +14,10 @@ class Settings(BaseSettings):
 
     ACCESS_TOKEN_EXPIRE_MINUTES: int
 
+    UPLOAD_DIR: str
+    OUTPUT_DIR: str
+    ALLOWED_EXTENSIONS: list[str]
+
     class Config:
         env_file = ".env"
 

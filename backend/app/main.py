@@ -1,5 +1,7 @@
 from fastapi import FastAPI,HTTPException
 
+from datetime import datetime, timezone
+
 from app.core.config import settings
 
 from app.db.database import engine
@@ -31,6 +33,8 @@ app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
 )
+
+app.state.start_time = datetime.now(timezone.utc)
 
 app.add_middleware(RequestLoggingMiddleware)
 

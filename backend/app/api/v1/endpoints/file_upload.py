@@ -20,15 +20,16 @@ from app.services.audit_service import (
 from fastapi import BackgroundTasks
 from app.services.background_tasks import background_log_event
 
+from app.core.config import settings
+
 router = APIRouter(
     prefix="/files",
     tags=["Files"]
 )
 
-UPLOAD_DIR = "uploads"
 
 os.makedirs(
-    UPLOAD_DIR,
+    settings.UPLOAD_DIR,
     exist_ok=True
 )
 
@@ -44,7 +45,7 @@ async def upload_file(
 ):
 
     file_path = os.path.join(
-        UPLOAD_DIR,
+        settings.UPLOAD_DIR,
         file.filename
     )
 

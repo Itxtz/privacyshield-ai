@@ -23,11 +23,17 @@ from app.core.error_handlers import (
 
     http_exception_handler,
 
-    validation_exception_handler
+    validation_exception_handler,
+
+    rate_limit_exception_handler
 
 )
 
 from app.core.middleware import RequestLoggingMiddleware
+
+from app.core.rate_limiter import limiter
+
+from slowapi.errors import RateLimitExceeded
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -35,6 +41,13 @@ app = FastAPI(
 )
 
 app.state.start_time = datetime.now(timezone.utc)
+
+app.state.limiter = limiter
+
+app.add_exception_handler(
+    RateLimitExceeded,
+    rate_limit_exception_handler
+)
 
 app.add_middleware(RequestLoggingMiddleware)
 

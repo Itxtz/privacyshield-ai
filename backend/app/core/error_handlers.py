@@ -4,6 +4,8 @@ from fastapi.responses import JSONResponse
 
 from fastapi.exceptions import RequestValidationError
 
+from slowapi.errors import RateLimitExceeded
+
 async def http_exception_handler(
 
     request: Request,
@@ -68,4 +70,17 @@ async def validation_exception_handler(
 
         }
 
+    )
+
+async def rate_limit_exception_handler(
+    request,
+    exc: RateLimitExceeded
+):
+    return JSONResponse(
+        status_code=429,
+        content={
+            "success": False,
+            "status_code": 429,
+            "error": "Too many requests. Please try again later."
+        }
     )

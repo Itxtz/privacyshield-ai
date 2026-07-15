@@ -30,6 +30,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from app.core.exceptions import InvalidCredentialsException
 
+from fastapi import Request
+from app.core.rate_limiter import limiter
+
 router = APIRouter(
     prefix="/auth",
     tags=["Authentication"]
@@ -40,7 +43,9 @@ router = APIRouter(
     "/register",
     response_model=UserResponse
 )
+@limiter.limit("3/minute")
 def register_user(
+        request: Request,
         user: UserCreate,
         db: Session = Depends(get_db)
 ):
@@ -51,7 +56,9 @@ def register_user(
     "/login",
     response_model=Token
 )
+@limiter.limit("5/minute")
 def login_user(
+    request: Request,
         form_data: OAuth2PasswordRequestForm = Depends(),
         db: Session = Depends(get_db)
 ):

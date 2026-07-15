@@ -89,3 +89,34 @@ class SystemStatsResponse(BaseModel):
     total_analyses: int
 
     total_audit_logs: int
+
+#Day19 - Metrics 
+
+class UserMetrics(BaseModel):
+    total: int
+    admins: int
+    active: int
+    disabled: int
+
+
+class DocumentMetrics(BaseModel):
+    uploaded: int
+
+
+class AnalysisMetrics(BaseModel):
+    completed: int
+
+
+class SecurityMetrics(BaseModel):
+    audit_logs: int
+
+
+class MetricsResponse(BaseModel):
+    app_name: str
+    version: str
+    uptime: str
+    
+    users: UserMetrics
+    documents: DocumentMetrics
+    analysis: AnalysisMetrics
+    security: SecurityMetrics

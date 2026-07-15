@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 
 from app.db.database import get_db
 from app.models.user import User
-from app.core.security import require_admin
+from app.core.security import get_current_admin
 from app.schemas.user import AdminUserResponse
 from app.schemas.user import RoleUpdate
 
@@ -76,7 +76,7 @@ def get_all_users(
         description="Items per page"
     ),
 
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(get_current_admin),
 
     db: Session = Depends(get_db)
 ):
@@ -149,7 +149,7 @@ def update_user_role(
 
     background_tasks: BackgroundTasks,
 
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(get_current_admin),
 
     db: Session = Depends(get_db)
 ):
@@ -195,7 +195,7 @@ def update_user_role(
 )
 def get_system_stats(
 
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(get_current_admin),
 
     db: Session = Depends(get_db)
 ):
@@ -267,7 +267,7 @@ def get_all_audit_logs(
         description="Items per page"
     ),
 
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(get_current_admin),
 
     db: Session = Depends(get_db)
 ):
@@ -375,7 +375,7 @@ def disable_user(
 
     background_tasks: BackgroundTasks,
 
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(get_current_admin),
 
     db: Session = Depends(get_db)
 ):
@@ -421,7 +421,7 @@ def enable_user(
 
     background_tasks: BackgroundTasks,
 
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(get_current_admin),
 
     db: Session = Depends(get_db)
 ):

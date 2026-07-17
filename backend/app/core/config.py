@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str
     OUTPUT_DIR: str
     ALLOWED_EXTENSIONS: list[str]
+    MAX_FILE_SIZE_MB: int
 
     class Config:
         env_file = ".env"

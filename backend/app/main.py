@@ -35,6 +35,10 @@ from app.core.rate_limiter import limiter
 
 from slowapi.errors import RateLimitExceeded
 
+from app.core.security_headers import SecurityHeadersMiddleware
+
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
@@ -50,6 +54,16 @@ app.add_exception_handler(
 )
 
 app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.add_exception_handler(
     HTTPException,
